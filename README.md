@@ -14,4 +14,4 @@ Installation steps are adapted from [the React Native site](https://reactnative.
   ensure 30.0.2 is selected
   - Click apply to download and install the necessary components
 - Configure the ANDROID_HOME environment variable to point to your Android SDK (default location: `%LOCALAPPDATA%/Android/Sdk`)
-`cd src && npx react-native run-android`
+`cd src && npm run android`
