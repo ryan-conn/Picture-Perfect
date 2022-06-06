@@ -1,5 +1,6 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
+// TODO: need to calculate this on each render rather than statically here
 const windowSize = Dimensions.get('window');
 // Lock to 16:9 aspect ratio and center vertically
 const cameraWidth = windowSize.width;
@@ -23,6 +24,15 @@ export default StyleSheet.create({
   },
   settingsContainer: {
     flex: 1,
+  },
+  settingButtonContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingNameText: {
+    fontFamily: 'roboto',
+    fontSize: 24,
   },
   shutterButtonContainer: {
     flex: 1,
