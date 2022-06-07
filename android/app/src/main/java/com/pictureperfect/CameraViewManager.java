@@ -1,6 +1,7 @@
 package com.pictureperfect;
 
-import android.hardware.Camera;
+import android.hardware.camera2.*;
+import android.content.Context;
 import android.view.SurfaceView;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -16,10 +17,10 @@ import java.util.HashMap;
 public class CameraViewManager extends SimpleViewManager<SurfaceView> {
 
 	ReactApplicationContext mCallerContext;
-	Camera camera;
+	CameraManager cameraManager;
 
 	public CameraViewManager(ReactApplicationContext reactContext) {
-		camera = Camera.open();
+		cameraManager = (CameraManager) reactContext.getSystemService(Context.CAMERA_SERVICE);
 		mCallerContext = reactContext;
 	}
 
@@ -30,6 +31,6 @@ public class CameraViewManager extends SimpleViewManager<SurfaceView> {
 
 	@Override
 	public SurfaceView createViewInstance(ThemedReactContext context) {
-		return new CameraView(context, camera);
+		return new CameraView(context, cameraManager);
 	}
 }
