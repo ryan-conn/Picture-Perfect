@@ -1,0 +1,114 @@
+package com.pictureperfect; // replace com.your-app-name with your app’s name
+
+import android.hardware.camera2.*;
+import android.util.Log;
+import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableNativeArray;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import android.util.Range;
+import android.hardware.camera2.CameraCharacteristics.Key;
+import com.pictureperfect.CameraUtils;
+
+public class CameraModule extends ReactContextBaseJavaModule {
+
+	private CameraViewManager cameraViewManager;
+
+	CameraModule(ReactApplicationContext context, CameraViewManager cameraViewManager) {
+		super(context);
+		// Link this module to the camera view manager so it can be manipulated
+		this.cameraViewManager = cameraViewManager;
+	}
+
+	@Override
+	public String getName() {
+		return "CameraModule";
+	}
+
+	private CameraCharacteristics getCameraCharacteristics() throws CameraAccessException {
+		CameraManager cameraManager = cameraViewManager.getCameraManager();
+		return cameraManager.getCameraCharacteristics(CameraUtils.getRearCameraId(cameraManager));
+	}
+
+	// TODO: use WritableArrays instead of strings for sending ranges to frontend
+
+	@ReactMethod
+	public void getAvailableISOValues(final Promise promise) {
+		try {
+			Range<Integer> values = getCameraCharacteristics().get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+			WritableNativeArray ret = new WritableNativeArray();
+			ret.pushInt(values.getLower());
+			ret.pushInt(values.getUpper());
+			promise.resolve(ret);
+		}
+		catch (CameraAccessException e) {
+			promise.reject("Error getting camera characteristics.");
+			e.printStackTrace();
+		}
+	}
+
+	@ReactMethod
+	public void getAvailableExposureTimes(final Promise promise) {
+		try {
+			Range<Long> values = getCameraCharacteristics().get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
+			WritableNativeArray ret = new WritableNativeArray();
+			ret.pushInt(values.getLower().intValue());
+			ret.pushInt(values.getUpper().intValue());
+			promise.resolve(ret);
+		}
+		catch (CameraAccessException e) {
+			promise.reject("Error getting camera characteristics.");
+			e.printStackTrace();
+		}
+	}
+
+	@ReactMethod
+	public void getAvailableWhiteBalanceValues() {
+		// TODO: need to manually adjust white balance, it's not in the camera2 API
+	}
+
+	@ReactMethod
+	public void getAvailableZoomValues(final Promise promise) {
+		// TODO: graceful fallback when CONTROL_ZOOM_RATIO_RANGE not supported
+		// Range<Float> values = getCameraCharacteristics().get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+		WritableNativeArray ret = new WritableNativeArray();
+		ret.pushDouble(0.0);
+		ret.pushDouble(1.0);
+		promise.resolve(ret);
+	}
+
+	// Do not expose: React will just pass in value [0, 1] which will be converted to the appropriate focus distance
+	private void getAvailableFocusDistances(final Promise promise) {
+		try {
+			Float minFocus = getCameraCharacteristics().get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+			Range<Float> values = new Range(0, minFocus);
+			promise.resolve(values.toString());
+		}
+		catch (CameraAccessException e) {
+			promise.reject("Error getting camera characteristics.");
+			e.printStackTrace();
+		}
+	}
+
+	@ReactMethod
+	public void setAutoFocus(boolean enabled) {
+		CameraView cameraView = cameraViewManager.getCameraViewInstance();
+		// TODO: should probably throw an error since the setting hasn't been applied
+		if (cameraView == null) return;
+
+		Integer CONTROL_AF_MODE = enabled ? CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE : CameraMetadata.CONTROL_AF_MODE_OFF;
+
+		Log.d("ReactNative", Integer.toString(CONTROL_AF_MODE));
+
+		cameraView.updateSettings(Map.of(
+			CaptureRequest.CONTROL_AF_MODE, CONTROL_AF_MODE
+		));
+	}
+}
