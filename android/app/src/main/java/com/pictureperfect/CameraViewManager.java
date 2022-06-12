@@ -14,10 +14,11 @@ import com.pictureperfect.CameraView;
 import java.util.Map;
 import java.util.HashMap;
 
-public class CameraViewManager extends SimpleViewManager<SurfaceView> {
+public class CameraViewManager extends SimpleViewManager<CameraView> {
 
 	ReactApplicationContext mCallerContext;
 	CameraManager cameraManager;
+	CameraView cameraView;
 
 	public CameraViewManager(ReactApplicationContext reactContext) {
 		cameraManager = (CameraManager) reactContext.getSystemService(Context.CAMERA_SERVICE);
@@ -30,7 +31,16 @@ public class CameraViewManager extends SimpleViewManager<SurfaceView> {
 	}
 
 	@Override
-	public SurfaceView createViewInstance(ThemedReactContext context) {
-		return new CameraView(context, cameraManager);
+	public CameraView createViewInstance(ThemedReactContext context) {
+		cameraView = new CameraView(context, cameraManager);
+		return cameraView;
+	}
+
+	public CameraView getCameraViewInstance() {
+		return cameraView;
+	}
+
+	public CameraManager getCameraManager() {
+		return cameraManager;
 	}
 }
