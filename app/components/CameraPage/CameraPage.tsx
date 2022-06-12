@@ -3,10 +3,9 @@ import { StatusBar, Text, View } from 'react-native';
 import { Camera as ExpoCamera } from 'expo-camera';
 import styles from './styles';
 import ShutterButton from './ShutterButton';
-import SettingButton  from './SettingButton';
+import SettingButton, { AdjustableCameraSetting }  from './SettingButton';
 import { CameraSetting } from '../../redux/cameraSettings';
 import Camera from './Camera';
-
 
 const CameraPage: React.FC = () => {
   const [hasCameraPermission, setHasCameraPermission] = React.useState<Boolean>();
@@ -22,17 +21,15 @@ const CameraPage: React.FC = () => {
     })();
   }, []);
 
-  const cameraSettings = [
+  const cameraSettings: AdjustableCameraSetting[] = [
+    CameraSetting.ExposureTime,
+    CameraSetting.FocusDistance,
     CameraSetting.ISO,
-    CameraSetting.ShutterSpeed,
-    CameraSetting.Focus,
-    CameraSetting.WhiteBalance
+    // CameraSetting.WhiteBalance
   ];
 
   const settingButtons = cameraSettings.map((setting) => (
-    <View style={styles.settingButtonContainer} key={setting}>
-      <SettingButton setting={setting} />
-    </View>
+    <SettingButton setting={setting} key={setting} />
   ));
 
   if (hasCameraPermission === undefined) return <View style={styles.background} />;
