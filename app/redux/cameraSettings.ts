@@ -1,49 +1,77 @@
 import { createAction, createReducer } from "@reduxjs/toolkit";
-import { WhiteBalance } from "expo-camera";
+import { NativeModules } from 'react-native';
+
+// All interfacing with the camera native module should be done through redux, setters should be encapsulated to this file
+const { CameraModule } = NativeModules;
+
+// Export getters so UI components can determine the range of available values
+export const getAvailableISOValues: () => Promise<[number, number]> = CameraModule.getAvailableISOValues;
+/**
+ * Get available exposure times (unit: nanoseconds)
+ */
+export const getAvailableExposureTimes: () => Promise<[number, number]> = CameraModule.getAvailableExposureTimes;
+export const getAvailableZoomValues: () => Promise<[number, number]> = CameraModule.getAvailableZoomValues;
 
 export enum CameraSetting {
-  Focus = 'focusDepth',
-  ISO = 'iso',
-  ShutterSpeed = 'shutterSpeed',
+  FocusDistance = 'focusDistance',
+  ISO = 'ISO',
+  ExposureTime = 'exposureTime',
   WhiteBalance = 'whiteBalance',
   Zoom = 'zoom',
 }
 
 interface CameraSettingsState {
   autoFocus: boolean,
-  focusDepth: number,
+  focusDistance: number,
+  autoExposure: boolean,
   ISO: number,
-  shutterSpeed: number,
+  exposureTime: number,
+  autoWhiteBalance: boolean,
   whiteBalance: number,
   zoom: number,
 }
 
-const setAutoFocus = createAction<boolean>('settings/autoFocus/set');
-const setFocusDepth = createAction<number>('settings/focusDepth/set');
-const setISO = createAction<number>('settings/iso/set');
-const setShutterSpeed = createAction<number>('settings/shutterSpeed/set');
-const setWhiteBalance = createAction<number>('settings/whiteBalance/set');
-const setZoom = createAction<number>('settings/zoom/set');
+export const setAutoFocus = createAction<boolean>('settings/autoFocus/set');
+export const setFocusDistance = createAction<number>('settings/focusDistance/set');
+export const setAutoExposure = createAction<boolean>('settings/autoExposure/set');
+export const setISO = createAction<number>('settings/iso/set');
+export const setExposureTime = createAction<number>('settings/exposureTime/set');
+export const setAutoWhiteBalance = createAction<boolean>('settings/autoWhiteBalance/set');
+export const setWhiteBalance = createAction<number>('settings/whiteBalance/set');
+export const setZoom = createAction<number>('settings/zoom/set');
 
 const initialState: CameraSettingsState = {
   autoFocus: true,
-  focusDepth: 0,
+  focusDistance: 0,
+  autoExposure: true,
   ISO: 4500,
-  shutterSpeed: 0.05,
+  exposureTime: 0.05,
+  autoWhiteBalance: true,
   whiteBalance: 0.5,
   zoom: 0,
 };
 
+// TODO: make each of these settings call camera module functions
 export const cameraSettingsReducer = createReducer(initialState, (builder) => {
   builder
-    .addCase(setFocusDepth, (state, action) => {
-      state.focusDepth = action.payload;
+    .addCase(setAutoFocus, (state, action) => {
+      CameraModule.setAutoFocus(action.payload);
+      state.autoFocus = action.payload;
+    })
+    .addCase(setFocusDistance, (state, action) => {
+      state.focusDistance = action.payload;
+    })
+    .addCase(setAutoExposure, (state, action) => {
+      state.autoExposure = action.payload;
     })
     .addCase(setISO, (state, action) => {
       state.ISO = action.payload;
     })
-    .addCase(setShutterSpeed, (state, action) => {
-      state.shutterSpeed = action.payload;
+    .addCase(setExposureTime, (state, action) => {
+      state.exposureTime = action.payload;
+    })
+    .addCase(setAutoWhiteBalance, (state, action) => {
+      state.autoWhiteBalance = action.payload;
     })
     .addCase(setWhiteBalance, (state, action) => {
       state.whiteBalance = action.payload;
