@@ -2,6 +2,7 @@ package com.pictureperfect;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.hardware.camera2.*;
 import android.hardware.camera2.params.OutputConfiguration;
 import android.hardware.camera2.params.SessionConfiguration;
@@ -13,13 +14,19 @@ import android.view.SurfaceView;
 import android.view.Surface;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 import com.pictureperfect.HandlerExecutor;
+import com.pictureperfect.CameraUtils;
 
 public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
 	CameraManager cameraManager;
+	CameraDevice cameraDevice;
 	HandlerThread cameraThread;
+	Handler cameraHandler;
 	SurfaceHolder holder;
+	CaptureRequest.Builder captureRequestBuilder;
+	CameraCaptureSession captureSession;
 
 	public CameraView(Context context, CameraManager cameraManager) {
 		super(context);
@@ -28,32 +35,17 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 		holder.addCallback(this);
 	}
 
-	private String getRearCameraId() {
-		try {
-			for (final String cameraId : cameraManager.getCameraIdList()) {
-				CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
-				int facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-				if (facing == CameraCharacteristics.LENS_FACING_BACK) return cameraId;
-			}
-		}
-		catch (CameraAccessException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private CameraCaptureSession.StateCallback createCaptureSessionCallback(
-		Handler cameraHandler,
-		CaptureRequest.Builder captureRequestBuilder
-	) {
+	// Helper function to initialize the initial capture session callback
+	private CameraCaptureSession.StateCallback createCaptureSessionCallback() {
 		return new CameraCaptureSession.StateCallback() {
 			@Override
 			public void onConfigureFailed(CameraCaptureSession session) {}
 
 			@Override
 			public void onConfigured(CameraCaptureSession session) {
+				captureSession = session;
 				try {
-					session.setRepeatingRequest(captureRequestBuilder.build(), null, cameraHandler);
+					captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, cameraHandler);
 				}
 				catch (CameraAccessException e) {
 					e.printStackTrace();
@@ -62,16 +54,34 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 		};
 	}
 
-	private CameraDevice.StateCallback createCameraStateCallback(Handler cameraHandler) {
+	// Helper function to create the initial camera state callback with default settings
+	private CameraDevice.StateCallback createCameraStateCallback() {
 		return new CameraDevice.StateCallback() {
 			@Override
 			public void onOpened(CameraDevice camera) {
-				// Create camera capture request
+				// Set cameraDevice to camera on open
+				cameraDevice = camera;
 				try {
-					CaptureRequest.Builder captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+					// Create camera capture request
+					captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
 					Surface previewSurface = new Surface(getSurfaceControl());
 					captureRequestBuilder.addTarget(previewSurface);
-					CameraCaptureSession.StateCallback captureSessionCallback = createCaptureSessionCallback(cameraHandler, captureRequestBuilder);
+					CameraCaptureSession.StateCallback captureSessionCallback = createCaptureSessionCallback();
+
+					// Set aspect ratio to 16:9
+					CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(camera.getId());
+					Rect sensorSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+					int centerX = sensorSize.width() / 2;
+					int centerY = sensorSize.height() / 2;
+					int cropHeight = sensorSize.height();
+					int cropWidth = sensorSize.width() * 16 / 9;
+					Rect cropRegion = new Rect(
+						centerY - cropHeight / 2,
+						centerX - cropWidth / 2,
+						cropHeight,
+						cropWidth
+					);
+					captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRegion);
 
 					// Create camera session with request
 					SessionConfiguration sessionConfig = new SessionConfiguration(
@@ -102,13 +112,13 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 		// Start background thread to run the camera in, to use as handler when opening camera
 		HandlerThread cameraThread = new HandlerThread("CameraThread");
 		cameraThread.start();
-		Handler cameraHandler = new Handler(cameraThread.getLooper());
+		cameraHandler = new Handler(cameraThread.getLooper());
 
 		// Create StateCallback to handle camera status updates
-		CameraDevice.StateCallback cameraStateCallback = createCameraStateCallback(cameraHandler);
+		CameraDevice.StateCallback cameraStateCallback = createCameraStateCallback();
 
 		// Open camera
-		String cameraId = getRearCameraId();
+		String cameraId = CameraUtils.getRearCameraId(cameraManager);
 		try {
 			cameraManager.openCamera(cameraId, cameraStateCallback, cameraHandler);
 		}
@@ -128,6 +138,28 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 			cameraThread.join();
 		}
 		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public CameraCaptureSession getCaptureSession() {
+		return captureSession;
+	}
+
+	// TODO: add mutex lock?
+	// TODO: add null checks
+	// TODO: add better error handling
+	public void updateSettings(Map<CaptureRequest.Key, Object> settings) {
+		// Update corresponding settings
+		for (Map.Entry<CaptureRequest.Key, Object> setting : settings.entrySet()) {
+			captureRequestBuilder.set(setting.getKey(), setting.getValue());
+		}
+
+		// Rebuild and resend request
+		try {
+			captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, cameraHandler);
+		}
+		catch (CameraAccessException e) {
 			e.printStackTrace();
 		}
 	}
