@@ -3,7 +3,7 @@ import { StatusBar, Text, View } from 'react-native';
 import { Camera as ExpoCamera } from 'expo-camera';
 import styles from './styles';
 import ShutterButton from './ShutterButton';
-import SettingButton, { AdjustableCameraSetting }  from './SettingButton';
+import SettingButton, { AdjustableCameraSetting }  from './SettingButton/SettingButton';
 import { CameraSetting } from '../../redux/cameraSettings';
 import Camera from './Camera';
 

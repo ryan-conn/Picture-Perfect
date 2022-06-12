@@ -5,8 +5,8 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   CameraSetting, getAvailableExposureTimes, getAvailableISOValues, getAvailableZoomValues, setAutoExposure, setAutoFocus, setExposureTime, setFocusDistance, setISO, setWhiteBalance
-} from '../../redux/cameraSettings';
-import { useDispatch, useSelector } from '../../redux/store';
+} from '../../../redux/cameraSettings';
+import { useDispatch, useSelector } from '../../../redux/store';
 import styles from './styles';
 
 export type AdjustableCameraSetting = (
@@ -84,12 +84,12 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
   }, []);
 
   // Transition background color on touch
-  const bgColor = React.useRef(new Animated.Value(0)).current;
-  const fadeIn = () => Animated.timing(bgColor, { toValue: 0.8, duration: 300, useNativeDriver: false }).start();
-  const fadeOut = () => Animated.timing(bgColor, { toValue: 0, duration: 300, useNativeDriver: false }).start();
+  const animation = React.useRef(new Animated.Value(0)).current;
+  const expand = () => Animated.timing(animation, { toValue: 0.8, duration: 300, useNativeDriver: false }).start();
+  const collapse = () => Animated.timing(animation, { toValue: 0, duration: 300, useNativeDriver: false }).start();
   const touchableStyle = {
     ...styles.settingButtonContainer,
-    backgroundColor: bgColor.interpolate({
+    backgroundColor: animation.interpolate({
       inputRange: [0, 1],
       outputRange: ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.5)'],
     }),
@@ -99,7 +99,7 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
   const handleButtonPress = () => {
     const newExpanded = !expanded
     setExpanded(newExpanded);
-    newExpanded ? fadeIn() : fadeOut();
+    newExpanded ? expand() : collapse();
   };
 
   return (
