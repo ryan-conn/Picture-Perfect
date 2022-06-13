@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
+    "@react-native-community/slider": "^4.2.2",
     "@reduxjs/toolkit": "^1.8.2",
     "@use-expo/screen-orientation": "^2.0.0",
     "@use-expo/sensors": "^2.0.0",

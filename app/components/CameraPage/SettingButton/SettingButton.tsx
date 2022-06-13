@@ -7,6 +7,7 @@ import {
   CameraSetting, getAvailableExposureTimes, getAvailableISOValues, getAvailableZoomValues, setAutoExposure, setAutoFocus, setExposureTime, setFocusDistance, setISO, setWhiteBalance
 } from '../../../redux/cameraSettings';
 import { useDispatch, useSelector } from '../../../redux/store';
+import Slider from '../../common/Slider/Slider';
 import styles from './styles';
 
 export type AdjustableCameraSetting = (
@@ -71,7 +72,6 @@ export interface SettingButtonProps {
 // TODO: rotate button with device
 const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }) => {
   const props = cameraSettingProps[setting];
-  const dispatch = useDispatch();
   const value = useSelector((state) => state.cameraSettings[setting]);
   const [expanded, setExpanded] = React.useState(false);
 
@@ -93,7 +93,7 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
       inputRange: [0, 1],
       outputRange: ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.5)'],
     }),
-    borderRadius: 3,
+    borderRadius: 6,
   };
 
   const handleButtonPress = () => {
@@ -102,12 +102,19 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
     newExpanded ? expand() : collapse();
   };
 
+  const slider = expanded ? (
+    <View style={styles.sliderContainer} pointerEvents="box-none">
+      <Slider value={40} range={[20, 60]} onChange={() => {}} />
+    </View>
+  ) : null;
+
   return (
     <AnimatedPressable style={touchableStyle} onPress={handleButtonPress}>
       {props.icon}
       <Text style={styles.settingValueText}>
         {value + props.unit}
       </Text>
+      {slider}
     </AnimatedPressable>
   );
 };
