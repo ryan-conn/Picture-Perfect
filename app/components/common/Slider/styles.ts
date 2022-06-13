@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const innerRadius = 16;
 const outerRadius = 20;
-const progressBarHeight = 4;
+const sliderBarHeight = 4;
 
 export default StyleSheet.create({
   sliderContainer: {
@@ -12,7 +12,7 @@ export default StyleSheet.create({
   },
   progressBar: {
     position: 'absolute',
-    transform: [{ translateY: -progressBarHeight / 2 }],
+    transform: [{ translateY: -sliderBarHeight / 2 }],
   },
   sliderKnobOuter: {
     position: 'absolute',
@@ -33,5 +33,20 @@ export default StyleSheet.create({
   },
   sliderPressed: {
     opacity: 0.8,
-  }
+  },
+  sliderBarContainer: {
+    display: 'flex',
+    width: 150,
+    overflow: 'visible',
+    flexDirection: 'row',
+  },
+  sliderBarFilled: {
+    backgroundColor: 'white',
+    height: sliderBarHeight,
+  },
+  sliderBarUnfilled: {
+    backgroundColor: 'lightgray',
+    height: sliderBarHeight,
+    flex: 1,
+  },
 });
