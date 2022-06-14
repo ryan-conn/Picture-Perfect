@@ -84,11 +84,11 @@ public class CameraModule extends ReactContextBaseJavaModule {
 		promise.resolve(ret);
 	}
 
-	// Do not expose: React will just pass in value [0, 1] which will be converted to the appropriate focus distance
+	@ReactMethod
 	private void getAvailableFocusDistances(final Promise promise) {
 		try {
 			Float minFocus = getCameraCharacteristics().get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
-			Range<Float> values = new Range(0, minFocus);
+			Range<Float> values = new Range(0f, minFocus);
 			promise.resolve(values.toString());
 		}
 		catch (CameraAccessException e) {
@@ -97,17 +97,19 @@ public class CameraModule extends ReactContextBaseJavaModule {
 		}
 	}
 
-	@ReactMethod
-	public void setAutoFocus(boolean enabled) {
+	// Helper method to update settings
+	private void changeCameraSettings(Map<CaptureRequest.Key, Object> settings) {
 		CameraView cameraView = cameraViewManager.getCameraViewInstance();
-		// TODO: should probably throw an error since the setting hasn't been applied
 		if (cameraView == null) return;
 
+		cameraView.updateSettings(settings);
+	}
+
+	@ReactMethod
+	public void setAutoFocus(boolean enabled) {
 		Integer CONTROL_AF_MODE = enabled ? CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE : CameraMetadata.CONTROL_AF_MODE_OFF;
 
-		Log.d("ReactNative", Integer.toString(CONTROL_AF_MODE));
-
-		cameraView.updateSettings(Map.of(
+		changeCameraSettings(Map.of(
 			CaptureRequest.CONTROL_AF_MODE, CONTROL_AF_MODE
 		));
 	}
