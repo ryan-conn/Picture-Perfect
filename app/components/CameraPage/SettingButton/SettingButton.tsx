@@ -69,8 +69,17 @@ export interface SettingButtonProps {
   enabled?: Boolean,
 };
 
+function formatValue(value: number, unit: string) {
+  let displayValue;
+  if (value % 1 === 0) displayValue = value;
+  else if (Math.abs(value) < 100) displayValue = value.toFixed(2);
+  else displayValue = Math.round(value);
+  return displayValue + unit;
+};
+
 // TODO: rotate button with device
 const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }) => {
+  const dispatch = useDispatch();
   const props = cameraSettingProps[setting];
   const value = useSelector((state) => state.cameraSettings[setting]);
   const [expanded, setExpanded] = React.useState(false);
@@ -102,9 +111,13 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
     newExpanded ? expand() : collapse();
   };
 
-  const slider = expanded ? (
+  const handleSliderChange = (newValue: number) => {
+    dispatch(props.setter(newValue));
+  };
+
+  const slider = (expanded && range) ? (
     <View style={styles.sliderContainer} pointerEvents="box-none">
-      <Slider value={40} range={[20, 60]} onChange={() => {}} />
+      <Slider value={value} range={range} onChange={handleSliderChange} />
     </View>
   ) : null;
 
@@ -112,7 +125,7 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
     <AnimatedPressable style={touchableStyle} onPress={handleButtonPress}>
       {props.icon}
       <Text style={styles.settingValueText}>
-        {value + props.unit}
+        {formatValue(value, props.unit)}
       </Text>
       {slider}
     </AnimatedPressable>
