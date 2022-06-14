@@ -6,7 +6,6 @@ import ShutterButton from './ShutterButton';
 import SettingButton, { AdjustableCameraSetting }  from './SettingButton/SettingButton';
 import { CameraSetting } from '../../redux/cameraSettings';
 import Camera from './Camera';
-import Slider from '@react-native-community/slider';
 
 const CameraPage: React.FC = () => {
   const [hasCameraPermission, setHasCameraPermission] = React.useState<Boolean>();
@@ -42,7 +41,7 @@ const CameraPage: React.FC = () => {
       </View>
       <Camera style={styles.cameraContainer} />
       <View style={styles.shutterButtonContainer}>
-        <Slider style={{ width: 90 }} />
+        <ShutterButton />
       </View>
     </View>
   );
