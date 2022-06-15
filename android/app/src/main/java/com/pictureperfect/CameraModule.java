@@ -84,20 +84,15 @@ public class CameraModule extends ReactContextBaseJavaModule {
 		promise.resolve(ret);
 	}
 
-	// TODO: just use [0, 1] and translate after sending value to android
+	// NOTE: The purpose of this function is to expose the range of desired values to React, NOT
+	// to determine the actual setting. The actual range is [0, LENS_INFO_MINIMUM_FOCUS_DISTANCE],
+	// where 0 is infinity.
 	@ReactMethod
 	private void getAvailableFocusDistances(final Promise promise) {
-		try {
-			Float minFocus = getCameraCharacteristics().get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
-			WritableNativeArray ret = new WritableNativeArray();
-			ret.pushDouble(0.0);
-			ret.pushDouble(minFocus);
-			promise.resolve(ret);
-		}
-		catch (CameraAccessException e) {
-			promise.reject("Error getting camera characteristics.");
-			e.printStackTrace();
-		}
+		WritableNativeArray ret = new WritableNativeArray();
+		ret.pushDouble(0.0);
+		ret.pushDouble(1.0);
+		promise.resolve(ret);
 	}
 
 	// Helper method to update settings
@@ -117,13 +112,22 @@ public class CameraModule extends ReactContextBaseJavaModule {
 		));
 	}
 
+	// Expected input range: [0, 1], where 0 means focus as close as possible and 1 means as far as possible
+	// Input must be transformed into the appropriate value based on camera characteristics.
 	@ReactMethod
-	public void setFocusDistance(Double newValue) {
-		Log.d("ReactNative", "setting focus");
-		changeCameraSettings(Map.of(
-			CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF,
-			CaptureRequest.LENS_FOCUS_DISTANCE, newValue.floatValue()
-		));
+	public void setFocusDistance(Double newValue, final Promise promise) {
+		try {
+			Float minFocus = getCameraCharacteristics().get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
+			Float realFocusDistance = minFocus - (newValue.floatValue() * minFocus);
+			changeCameraSettings(Map.of(
+				CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF,
+				CaptureRequest.LENS_FOCUS_DISTANCE, realFocusDistance
+			));
+		}
+		catch (CameraAccessException e) {
+			promise.reject("Error getting camera characteristics.");
+			e.printStackTrace();
+		}
 	}
 
 	@ReactMethod
