@@ -84,12 +84,15 @@ public class CameraModule extends ReactContextBaseJavaModule {
 		promise.resolve(ret);
 	}
 
+	// TODO: just use [0, 1] and translate after sending value to android
 	@ReactMethod
 	private void getAvailableFocusDistances(final Promise promise) {
 		try {
 			Float minFocus = getCameraCharacteristics().get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
-			Range<Float> values = new Range(0f, minFocus);
-			promise.resolve(values.toString());
+			WritableNativeArray ret = new WritableNativeArray();
+			ret.pushDouble(0.0);
+			ret.pushDouble(minFocus);
+			promise.resolve(ret);
 		}
 		catch (CameraAccessException e) {
 			promise.reject("Error getting camera characteristics.");
@@ -111,6 +114,31 @@ public class CameraModule extends ReactContextBaseJavaModule {
 
 		changeCameraSettings(Map.of(
 			CaptureRequest.CONTROL_AF_MODE, CONTROL_AF_MODE
+		));
+	}
+
+	@ReactMethod
+	public void setFocusDistance(Double newValue) {
+		Log.d("ReactNative", "setting focus");
+		changeCameraSettings(Map.of(
+			CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF,
+			CaptureRequest.LENS_FOCUS_DISTANCE, newValue.floatValue()
+		));
+	}
+
+	@ReactMethod
+	public void setISO(Double newValue) {
+		changeCameraSettings(Map.of(
+			CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF,
+			CaptureRequest.SENSOR_SENSITIVITY, newValue.intValue()
+		));
+	}
+
+	@ReactMethod
+	public void setExposureTime(Double newValue) {
+		changeCameraSettings(Map.of(
+			CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF,
+			CaptureRequest.SENSOR_EXPOSURE_TIME, newValue.longValue()
 		));
 	}
 }
