@@ -14,9 +14,12 @@ export const getAvailableFocusDistances: () => Promise<[number, number]> = Camer
 export const getAvailableZoomValues: () => Promise<[number, number]> = CameraModule.getAvailableZoomValues;
 
 export enum CameraSetting {
+  AutoFocus = 'autoFocus',
   FocusDistance = 'focusDistance',
+  AutoExposure = 'autoExposure',
   ISO = 'ISO',
   ExposureTime = 'exposureTime',
+  AutoWhiteBalance = 'autoWhiteBalance',
   WhiteBalance = 'whiteBalance',
   Zoom = 'zoom',
 }
@@ -62,6 +65,7 @@ export const cameraSettingsReducer = createReducer(initialState, (builder) => {
     .addCase(setFocusDistance, (state, action) => {
       CameraModule.setFocusDistance(action.payload);
       state.focusDistance = action.payload;
+      state.autoFocus = false;
     })
     .addCase(setAutoExposure, (state, action) => {
       state.autoExposure = action.payload;
@@ -70,11 +74,13 @@ export const cameraSettingsReducer = createReducer(initialState, (builder) => {
       const valueToUse = Math.round(action.payload);
       CameraModule.setISO(valueToUse);
       state.ISO = valueToUse;
+      state.autoExposure = false;
     })
     .addCase(setExposureTime, (state, action) => {
       const valueToUse = Math.round(action.payload);
       CameraModule.setExposureTime(valueToUse)
       state.exposureTime = valueToUse;
+      state.autoExposure = false;
     })
     .addCase(setAutoWhiteBalance, (state, action) => {
       state.autoWhiteBalance = action.payload;
