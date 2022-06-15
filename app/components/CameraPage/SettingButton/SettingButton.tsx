@@ -4,7 +4,7 @@ import { Animated, Pressable, StyleProp, TouchableWithoutFeedback, View, ViewSty
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
-  CameraSetting, getAvailableExposureTimes, getAvailableISOValues, getAvailableZoomValues, setAutoExposure, setAutoFocus, setExposureTime, setFocusDistance, setISO, setWhiteBalance
+  CameraSetting, getAvailableExposureTimes, getAvailableFocusDistances, getAvailableISOValues, getAvailableZoomValues, setAutoExposure, setAutoFocus, setExposureTime, setFocusDistance, setISO, setWhiteBalance
 } from '../../../redux/cameraSettings';
 import { useDispatch, useSelector } from '../../../redux/store';
 import Slider from '../../common/Slider/Slider';
@@ -51,7 +51,7 @@ const cameraSettingProps: Record<AdjustableCameraSetting, SettingProps> = {
     setter: setFocusDistance,
     autoSetter: setAutoFocus,
     // TODO: range correct?
-    getRange: getAvailableZoomValues,
+    getRange: getAvailableFocusDistances,
     unit: '',
   },
   // [CameraSetting.WhiteBalance]: {
@@ -112,7 +112,10 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
   };
 
   const handleSliderChange = (newValue: number) => {
-    dispatch(props.setter(newValue));
+    if (range === undefined) return;
+    // Focus distance values are reversed from what might be expected
+    if (setting === CameraSetting.FocusDistance) dispatch(props.setter(range[1] - newValue))
+    else dispatch(props.setter(newValue));
   };
 
   const slider = (expanded && range) ? (

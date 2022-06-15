@@ -22,8 +22,8 @@ const CameraPage: React.FC = () => {
   }, []);
 
   const cameraSettings: AdjustableCameraSetting[] = [
-    CameraSetting.ExposureTime,
     CameraSetting.FocusDistance,
+    CameraSetting.ExposureTime,
     CameraSetting.ISO,
     // CameraSetting.WhiteBalance
   ];
