@@ -36,8 +36,6 @@ export default StyleSheet.create({
   },
   sliderBarContainer: {
     display: 'flex',
-    width: 150,
-    overflow: 'visible',
     flexDirection: 'row',
   },
   sliderBarFilled: {

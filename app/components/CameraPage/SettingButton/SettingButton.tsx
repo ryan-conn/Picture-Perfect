@@ -8,6 +8,7 @@ import {
 } from '../../../redux/cameraSettings';
 import { useDispatch, useSelector } from '../../../redux/store';
 import Slider from '../../common/Slider/Slider';
+import SettingAutoToggle, { AutoCameraSetting } from './SettingAutoToggle';
 import styles from './styles';
 
 export type AdjustableCameraSetting = (
@@ -23,11 +24,13 @@ interface SettingProps {
   // Redux action to set the new value
   setter: ActionCreatorWithPayload<any>,
   // Redux action to set auto on/off
-  autoSetter: ActionCreatorWithPayload<any>,
+  autoSetting: AutoCameraSetting,
   // Callback to get the range of possible values for the setting
   getRange: () => Promise<[number, number]>,
   // Unit to display after the setting value
   unit: string,
+  // Multiplier to use for the raw setting value when displaying to user (default 1)
+  formattedMultiplier?: number,
 };
 
 // TODO: add white balance once implemented
@@ -35,21 +38,22 @@ const cameraSettingProps: Record<AdjustableCameraSetting, SettingProps> = {
   [CameraSetting.ISO]: {
     icon: <Text style={styles.settingNameText}>ISO</Text>,
     setter: setISO,
-    autoSetter: setAutoExposure,
+    autoSetting: CameraSetting.AutoExposure,
     getRange: getAvailableISOValues,
     unit: '',
   },
   [CameraSetting.ExposureTime]: {
     icon: <MaterialCommunityIcons name="camera-iris" color="white" size={24} />,
     setter: setExposureTime,
-    autoSetter: setAutoExposure,
+    autoSetting: CameraSetting.AutoExposure,
     getRange: getAvailableExposureTimes,
-    unit: '',
+    formattedMultiplier: 1 / 1000000000,
+    unit: 's',
   },
   [CameraSetting.FocusDistance]: {
     icon: <MaterialCommunityIcons name="image-filter-center-focus" color="white" size={24} />,
     setter: setFocusDistance,
-    autoSetter: setAutoFocus,
+    autoSetting: CameraSetting.AutoFocus,
     // TODO: range correct?
     getRange: getAvailableFocusDistances,
     unit: '',
@@ -69,7 +73,9 @@ export interface SettingButtonProps {
   enabled?: Boolean,
 };
 
-function formatValue(value: number, unit: string) {
+function formatValue(value: number, unit: string, isAuto: boolean, formattedMultiplier = 1) {
+  if (isAuto) return 'AUTO';
+  value = value * formattedMultiplier;
   let displayValue;
   if (value % 1 === 0) displayValue = value;
   else if (Math.abs(value) < 100) displayValue = value.toFixed(2);
@@ -80,8 +86,12 @@ function formatValue(value: number, unit: string) {
 // TODO: rotate button with device
 const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }) => {
   const dispatch = useDispatch();
+
   const props = cameraSettingProps[setting];
-  const value = useSelector((state) => state.cameraSettings[setting]);
+  const cameraSettingState = useSelector((state) => state.cameraSettings);
+  const value = cameraSettingState[setting]
+  const isAuto = cameraSettingState[props.autoSetting];
+
   const [expanded, setExpanded] = React.useState(false);
 
   // Determine setting range on initial render
@@ -94,7 +104,7 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
 
   // Transition background color on touch
   const animation = React.useRef(new Animated.Value(0)).current;
-  const expand = () => Animated.timing(animation, { toValue: 0.8, duration: 300, useNativeDriver: false }).start();
+  const expand = () => Animated.timing(animation, { toValue: 1, duration: 300, useNativeDriver: false }).start();
   const collapse = () => Animated.timing(animation, { toValue: 0, duration: 300, useNativeDriver: false }).start();
   const touchableStyle = {
     ...styles.settingButtonContainer,
@@ -111,16 +121,16 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
     newExpanded ? expand() : collapse();
   };
 
+  // TODO: debounce updates
   const handleSliderChange = (newValue: number) => {
-    if (range === undefined) return;
-    // Focus distance values are reversed from what might be expected
-    if (setting === CameraSetting.FocusDistance) dispatch(props.setter(range[1] - newValue))
-    else dispatch(props.setter(newValue));
+    dispatch(props.setter(newValue));
   };
 
   const slider = (expanded && range) ? (
-    <View style={styles.sliderContainer} pointerEvents="box-none">
-      <Slider value={value} range={range} onChange={handleSliderChange} />
+    <View style={styles.sliderContainer}>
+      <View style={styles.slider}>
+        <Slider value={value} range={range} onChange={handleSliderChange} />
+      </View>
     </View>
   ) : null;
 
@@ -128,7 +138,7 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
     <AnimatedPressable style={touchableStyle} onPress={handleButtonPress}>
       {props.icon}
       <Text style={styles.settingValueText}>
-        {formatValue(value, props.unit)}
+        {formatValue(value, props.unit, isAuto, props.formattedMultiplier)}
       </Text>
       {slider}
     </AnimatedPressable>
