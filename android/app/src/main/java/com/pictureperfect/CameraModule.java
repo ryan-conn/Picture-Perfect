@@ -9,6 +9,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableNativeArray;
+import java.lang.Math;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,7 @@ import com.pictureperfect.CameraUtils;
 public class CameraModule extends ReactContextBaseJavaModule {
 
 	private CameraViewManager cameraViewManager;
+	private long desiredExposureTime;
 
 	CameraModule(ReactApplicationContext context, CameraViewManager cameraViewManager) {
 		super(context);
@@ -60,7 +62,9 @@ public class CameraModule extends ReactContextBaseJavaModule {
 			Range<Long> values = getCameraCharacteristics().get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
 			WritableNativeArray ret = new WritableNativeArray();
 			ret.pushInt(values.getLower().intValue());
-			ret.pushInt(values.getUpper().intValue());
+			// Limit upper bound to 0.25 seconds, as the app doesn't teach long exposure photography
+			// and showing the real upper bound makes it difficult to get the correct exposure time
+			ret.pushInt((int) Math.min(values.getUpper(), 250000000));
 			promise.resolve(ret);
 		}
 		catch (CameraAccessException e) {
@@ -140,9 +144,13 @@ public class CameraModule extends ReactContextBaseJavaModule {
 
 	@ReactMethod
 	public void setExposureTime(Double newValue) {
+		// Set the desired exposure time to use when capturing image to the user-specified value
+		desiredExposureTime = newValue.longValue();
+
 		changeCameraSettings(Map.of(
 			CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF,
-			CaptureRequest.SENSOR_EXPOSURE_TIME, newValue.longValue()
+			// Limit camera preview exposure time to keep it responsive
+			CaptureRequest.SENSOR_EXPOSURE_TIME, Math.min(newValue.longValue(), 100000000)
 		));
 	}
 }

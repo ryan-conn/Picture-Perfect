@@ -82,6 +82,10 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 						cropWidth
 					);
 					captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRegion);
+					// Set default exposure/focus values to match redux
+					captureRequestBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 4500);
+					captureRequestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, 0.0f);
+					captureRequestBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 200000000L);
 
 					// Create camera session with request
 					SessionConfiguration sessionConfig = new SessionConfiguration(
