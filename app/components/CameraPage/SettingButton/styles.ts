@@ -1,7 +1,6 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
-export const sliderWidth = Dimensions.get('window').height * 0.2;
-console.log(sliderWidth);
+const sliderWidth = Dimensions.get('window').height * 0.2;
 const sliderHeight = 32;
 const sliderPadding = 12;
 const settingButtonSize = 56;
