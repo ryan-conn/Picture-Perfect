@@ -9,7 +9,7 @@ import {
 import { useDispatch, useSelector } from '../../../redux/store';
 import Slider from '../../common/Slider/Slider';
 import SettingAutoToggle, { AutoCameraSetting } from './SettingAutoToggle';
-import styles from './styles';
+import styles, { autoToggleSize } from './styles';
 
 export type AdjustableCameraSetting = (
   CameraSetting.ISO
@@ -130,6 +130,9 @@ const SettingButton: React.FC<SettingButtonProps> = ({ setting, enabled = true }
     <View style={styles.sliderContainer}>
       <View style={styles.slider}>
         <Slider value={value} range={range} onChange={handleSliderChange} />
+      </View>
+      <View style={styles.autoToggle}>
+        <SettingAutoToggle setting={props.autoSetting} size={autoToggleSize} />
       </View>
     </View>
   ) : null;

@@ -1,9 +1,10 @@
 import { Dimensions, StyleSheet } from 'react-native';
 
 const sliderWidth = Dimensions.get('window').height * 0.2;
-const sliderHeight = 32;
+const sliderHeight = 40;
 const sliderPadding = 12;
 const settingButtonSize = 56;
+export const autoToggleSize = 24;
 
 export default StyleSheet.create({
   settingButtonContainer: {
@@ -31,7 +32,7 @@ export default StyleSheet.create({
     left: settingButtonSize + 8,
     display: 'flex',
     flexDirection: 'row',
-    width: sliderWidth + sliderPadding * 2 + 8,
+    width: sliderWidth + sliderPadding * 2 + autoToggleSize + 8,
     backgroundColor: '#00000080',
     borderRadius: 6,
     padding: sliderPadding,
@@ -42,10 +43,6 @@ export default StyleSheet.create({
     justifyContent: 'center',
   },
   autoToggle: {
-    position: 'absolute',
-    left: settingButtonSize + sliderWidth + 16,
     justifyContent: 'center',
-    display: 'flex',
-    flexDirection: 'row',
   },
 });
