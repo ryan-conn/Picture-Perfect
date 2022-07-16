@@ -1,17 +1,12 @@
 import React from 'react';
 import { TouchableHighlight, View } from 'react-native';
-import { setAutoFocus } from '../../redux/cameraSettings';
-import { useDispatch, useSelector } from '../../redux/store';
 import styles from './styles';
 
-const ShutterButton: React.FC = () => {
-  const dispatch = useDispatch();
-  const autoFocus = useSelector((state) => state.cameraSettings.autoFocus);
+interface ShutterButtonProps {
+  onPress: () => any,
+};
 
-  const handlePress = () => {
-    dispatch(setAutoFocus(!autoFocus));
-  };
-
+const ShutterButton: React.FC<ShutterButtonProps> = ({ onPress: handlePress }) => {
   return (
     <TouchableHighlight style={styles.shutterButtonOuter} onPress={handlePress}>
       <View style={styles.shutterButtonInner} />

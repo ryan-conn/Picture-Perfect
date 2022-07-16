@@ -1,20 +1,21 @@
 import React from 'react';
 import { StatusBar, Text, View } from 'react-native';
 import { Camera as ExpoCamera } from 'expo-camera';
+import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
 import ShutterButton from './ShutterButton';
 import SettingButton, { AdjustableCameraSetting }  from './SettingButton/SettingButton';
 import { CameraSetting } from '../../redux/cameraSettings';
 import Camera from './Camera';
+import { CameraPageNavigationProp } from '../common/NavigationStack/NavigationStack';
+import FocusAwareStatusBar from '../common/FocusAwareStatusBar/FocusAwareStatusBar';
 
 const CameraPage: React.FC = () => {
+  const navigation = useNavigation<CameraPageNavigationProp>();
   const [hasCameraPermission, setHasCameraPermission] = React.useState<Boolean>();
 
   React.useEffect(() => {
     (async () => {
-      // Hide status bar
-      StatusBar.setHidden(true, 'fade');
-
       // Request camera permission
       const { status } = await ExpoCamera.requestCameraPermissionsAsync();
       setHasCameraPermission(status === 'granted');
@@ -36,12 +37,13 @@ const CameraPage: React.FC = () => {
   else if (hasCameraPermission === false) return <Text>Camera permission denied.</Text>;
   return (
     <View style={styles.background}>
+      <FocusAwareStatusBar hidden />
       <View style={styles.settingsContainer}>
         {settingButtons}
       </View>
       <Camera style={styles.cameraContainer} />
       <View style={styles.shutterButtonContainer}>
-        <ShutterButton />
+        <ShutterButton onPress={() => navigation.navigate('Evaluation')} />
       </View>
     </View>
   );
