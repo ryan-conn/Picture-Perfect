@@ -1,5 +1,6 @@
 import React from 'react';
-import { StatusBar, Text, View } from 'react-native';
+import * as tf from '@tensorflow/tfjs';
+import { Text, View } from 'react-native';
 import { Camera as ExpoCamera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import styles from './styles';
@@ -9,6 +10,7 @@ import { CameraSetting } from '../../redux/cameraSettings';
 import Camera from './Camera';
 import { CameraPageNavigationProp } from '../common/NavigationStack/NavigationStack';
 import FocusAwareStatusBar from '../common/FocusAwareStatusBar/FocusAwareStatusBar';
+import predictExposure from '../../models/exposure';
 
 const CameraPage: React.FC = () => {
   const navigation = useNavigation<CameraPageNavigationProp>();
@@ -20,6 +22,16 @@ const CameraPage: React.FC = () => {
       const { status } = await ExpoCamera.requestCameraPermissionsAsync();
       setHasCameraPermission(status === 'granted');
     })();
+
+    const t = tf.tensor(new Array(3000000).fill(0.5), [1000, 1000, 3]);
+    predictExposure(t)
+      .then((exposure) => {
+        console.log(exposure);
+      })
+      .catch((e) => {
+        console.log('Error:');
+        console.log(e);
+      });
   }, []);
 
   const cameraSettings: AdjustableCameraSetting[] = [
