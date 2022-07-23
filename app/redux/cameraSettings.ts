@@ -1,5 +1,6 @@
-import { createAction, createReducer } from "@reduxjs/toolkit";
+import { createAction, createReducer } from '@reduxjs/toolkit';
 import { NativeModules } from 'react-native';
+import { throttle } from '../utils/throttle';
 
 // All interfacing with the camera native module should be done through redux, setters should be encapsulated to this file
 const { CameraModule } = NativeModules;
@@ -63,7 +64,7 @@ export const cameraSettingsReducer = createReducer(initialState, (builder) => {
       state.autoFocus = action.payload;
     })
     .addCase(setFocusDistance, (state, action) => {
-      CameraModule.setFocusDistance(action.payload);
+      throttle('setFocus', 100, () => CameraModule.setFocusDistance(action.payload));
       state.focusDistance = action.payload;
       state.autoFocus = false;
     })
@@ -72,13 +73,13 @@ export const cameraSettingsReducer = createReducer(initialState, (builder) => {
     })
     .addCase(setISO, (state, action) => {
       const valueToUse = Math.round(action.payload);
-      CameraModule.setISO(valueToUse);
+      throttle('setISO', 100, () => CameraModule.setISO(valueToUse));
       state.ISO = valueToUse;
       state.autoExposure = false;
     })
     .addCase(setExposureTime, (state, action) => {
       const valueToUse = Math.round(action.payload);
-      CameraModule.setExposureTime(valueToUse)
+      throttle('setExposureTime', 100, () => CameraModule.setExposureTime(valueToUse));
       state.exposureTime = valueToUse;
       state.autoExposure = false;
     })
